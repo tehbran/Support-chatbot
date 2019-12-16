@@ -1,0 +1,369 @@
+! version = 2.0
+
+! local concat = newline
+
+//parser arrays
+! array ts = 1 troubleshoot troubleshooting trouble
+! array newissue = create new
+! array exit = exit back previous menu
+
++ (login)
+- hello, do you have a user id? {topic=askuid}
+
++ (menu)
+- 1 - Troubleshooting {topic=menu}
+^ 2 - Payments
+^ 3 - inquiries
+
+> topic menu
++ [*] (@ts|1) [*]
+- welcome to the troubleshooting menu, please select an option or ask a question {topic=troubleshoot}
+^ 1 - Create new issue
+^ 2 - Check existing issues
+^ 3 - i need help that doesn't require a ticket
+^ 4 - Exit to previous menu 
+
++ [*] (payment|payments|2|pay) [*]
+* <get usertype> == user => how may i help you? {topic=paymentsuser}
+* <get usertype> == producer => how may i help you? {topic=paymentsproducer}
+
++ [*] (inquiries|3|inquire) [*]
+- what do you need help with? {topic=inquiries}
+< topic //end of menu block
+
+
+
+> topic troubleshoot
+//+ [*] @newissue [*]
++ im having trouble
+- sorry to hear that, how may i help you? {topic=havingtrouble}
+
++ i need help
+- sorry to hear that, how may i help you? {topic=havingtrouble}
+
++ my latest video isnt online
+* <get usertype> == producer => sorry about that, when was it uploaded? {topic=vidnotup}
+- You don't seem to be a content producer, are you on the correct support account?
+
++ my subscription page is not showing my latest videos
+* <get usertype> == producer => sorry about that, when was your latest video? {topic=subfeed}
+- You don't seem to be a content producer, are you on the correct support account?
+
++ why was my video cut off
+- Your video may have been longer than the 10 minute limit. {topic=vidcutoff}
+
++ [*] (@exit) [*]
+- 1 - Troubleshooting {topic=menu}
+^ 2 - Payments
+^ 3 - inquiries
+
++ *
+- sorry, i didn't understand that.
+
+< topic //end of troubleshoot block
+
+> topic havingtrouble
++ i cant get videos to play on other devices
+- sorry to hear that, what devices are you having trouble with? {topic=otherdevicestrouble}
+
++ i cant get access to content ive paid for
+- sorry to hear that, which content are you having trouble with? {topic=unseenvideo}
+
++ i want to check on my support ticket [*]#
+* <get tic> ne <star> => Okay, let me check on your ticket #<star> <set tic=<star>> <call>getrandomprio </call> {topic=ticketcheck}
+* <get tic> == <star> => Okay what do you want to know? {topic=ticketcheck}
+
++ *
+- sorry, i couldn't understand your question.
+< topic
+
+> topic otherdevicestrouble
++ *
+- Please try playing the videos on your other devices again, or restart them.
+< topic
+
+> topic unseenvideo
++ *
+- Please try restarting your devices or refreshing your client
+< topic
+
+> topic ticketcheck
++ when will it be resolved
+* <get ticpri> == Low => Your ticket should be resolved within two weeks.
+* <get ticpri> == Medium => Your ticket should be resolved within one week.
+* <get ticpri> == High => Your ticket should be resolved within 48 hours.
+< topic
+
+> topic vidnotup
++ *
+- sorry to hear that, would you like to open a support ticket? {topic=confirmtic}
+< topic
+
+> topic confirmtic
++ (please open a support ticket for this|yes)
+- Okay, i will create a ticket for you <call>createtic </call> {topic=newtic}
+< topic
+
+> topic newtic
++ #
+- Your ticket number is <star>, would you like help with anything else?
+
++ [*] (yes) [*]
+- welcome to the troubleshooting menu, please select an option or ask a question {topic=troubleshoot}
+^ 1 - Create new issue
+^ 2 - Check existing issues
+^ 3 - i need help that doesn't require a ticket
+^ 4 - Exit to previous menu 
+
+
++ [*] no [*]
+- 1 - Troubleshooting {topic=menu}
+^ 2 - Payments
+^ 3 - inquiries
+< topic
+
+> topic subfeed
++ *
+- sorry, that might be an error on our part. how would you like us to help? {topic=subfeedhelp}
+< topic
+
+> topic subfeedhelp
++ *
+- Okay, we'll get right on that!
+< topic
+
+> topic vidcutoff
++ *
+- Yes, there is a 10 minute limit on any uploaded videos.
+
++ can i suggest a trim function be added on submission
+- Yes, this is a commonly requested feature that the developers are currently working on. Please look forward to it!
+< topic
+
+> topic paymentsuser
++ i want to pay for something [*]
+- To access payments, you can go to your accounts page or you can pay directly on a video's product page
+
++ i want to stop [*]
+- To cancel a subscription, you can either do this on the subscriptions section of your account page or on the channel page that you want to unsubscribe from.
+
++ why am i still getting charged
+- sorry to hear that, what channel did you unsubscribe from? {topic=unsubhelp}
+
++ how much does this video cost
+- This video costs $1.50.
+
++ how much does the subscription for * cost
+- A subcription to <star> costs $5.00 per month.
+< topic
+
+> topic unsubhelp
++ [for a subscription to] *
+- when did you cancel? {topic=cancelsub} <set sub=<star>>
+< topic
+
+> topic cancelsub
++ *
+- Okay, i will make sure subscription is completely cancelled and refund you.
+< topic
+
+> topic paymentsproducer
++ i want to charge * for * per view
+- Okay, the video <star2> now costs $<star1> per view
+
++ i want to charge * for * for unlimited viewing
+- Okay, the video <star2> now costs $<star1> for unlimited viewing
+
++ i want to setup a subscription to my channel or streams for *
+- Okay, a subscription to your content now costs $<formal> per month.
+
++ im not getting paid [*]
+- sorry to hear that, i will try to make sure you get the proper payment. is there anything specific you wanted to know about this issue? <call>getrandpay </call>{topic=unpaidhelp}
+< topic
+
+> topic unpaidhelp
++ what views have i gotten since last week
+- You have gotten <get views> views since last week.
+
++ do i have any money that hasnt been paid out
+- You have $<get pay> to be withdrawn.
+< topic
+
+> topic inquiries
++ do you have videos for kids
+- Yes, you can find them in our For Kids category.
+
++ do you have music videos
+- Yes, you can find them in our Music category.
+
++ where can i find videos on cosplay
+- You can type 'cosplay' into the search bars to find a variety of videos on cosplay.
+
++ whats the latest video by user codingallday
+- The latest by codingallday was 'Rivescript for Beginners: Part 1' posted on december 1, 2019. {weight=10}
+- There is no user by the name of 'codingallday', did you mean 'codingday?' {weight=1}
+< topic
+
+> topic askuid
++ [*] (yes|y) [*]
+- Please enter your user id (should be a number) {topic=getuid}
+
++ [*] (no|n) [*]
+- Okay, what is your name? {topic=registername}
+
++ *
+- sorry, i didn't understand that.
+< topic //end of askuid block
+
+> topic registername
++ *
+- Okay, so your name is <formal>? <set name=<formal>> {topic=confirmregistername}
+
+< topic
+
+> topic confirmregistername
++ [*] (yes|y) [*]
+- Okay, are you are a user or producer? {topic=registerusertype}
+
++ [*] (no|n) [*]
+- Okay, what is your name? {topic=registername}
+
++ *
+- sorry, i didn't understand that.
+< topic
+
+> topic registerusertype
++ [*] user [*]{weight=10}
+- so you are a user? <set usertype=user> {topic=confirmusertype}
+
++ [*] producer [*]{weight=10}
+- so you are a content producer? <set usertype=producer> {topic=confirmusertype}
+
++ *
+- sorry, i didn't understand that.
+< topic
+
+> topic confirmusertype
++ [*] (yes|y) [*]
+- OK, registering <call>registeruser <get name> <get usertype></call>
+
++ [*] (no|n) [*]
+- OK, are you a user or producer? {topic=registerusertype}
+
++ completed
+- OK, your user id is <get uid>, please keep it to log in next time. {topic=menu}
+^ \n1 - Troubleshooting
+^ \n2 - Payments
+^ \n3 - inquiries
+
++ *
+- sorry, i didn't understand that.
+< topic
+
+> topic getuid
++ [*] # [*] {weight=10}
+- OK, searching for user <call>checkuser <star></call>
+
++ *
+- Please enter a valid user id.
+
++ notfound
+- sorry, user not found, would you like to try another id or go back?
+
++ found
+- Welcome <get name>, how may I help? {topic=loggedin}
+< topic
+ 
+> topic loggedin
++ menu
+- 1 - Troubleshooting {topic=menu}
+^ 2 - Payments
+^ 3 - inquiries
+< topic
+
+
+
+> object checkuser python
+    import mysql.connector
+
+    search = int(args[0])
+    botdB = mysql.connector.connect(
+        host = 'localhost',
+        database = 'chatbot',
+        user = 'root',
+        passwd = 'macOSDatabase',
+        auth_plugin = 'mysql_native_password'
+    )
+
+    cursor = botdB.cursor()
+
+    cursor.execute("select uid, username, userType from users where uid=%s", (search,))
+    data = cursor.fetchone()
+    if not data:
+        return ' '.join(('\nBot>', rs.reply(rs.current_user(), 'notfound')))
+    else:
+        vars = {
+            "uid": data[0],
+            "name": data[1],
+            "usertype": data[2]
+        }
+        rs.set_uservars(rs.current_user(), vars)
+        user = rs.current_user()
+        login = "\nBot> " + rs.reply(user, 'found') + "\nBot> " + rs.reply(user, 'menu')
+        return login
+
+    botdB.close()
+< object
+
+> object registeruser python
+    import mysql.connector
+
+    name = args[0]
+    usertype = args[1]
+
+    botdB = mysql.connector.connect(
+        host = 'localhost',
+        database = 'chatbot',
+        user = 'root',
+        passwd = 'macOSDatabase',
+        auth_plugin = 'mysql_native_password'
+    )
+
+    cursor = botdB.cursor()
+    cursor.execute("insert into users (username, userType) VALUES (%s, %s)", (name, usertype,))
+    uid = cursor.lastrowid
+    rs.set_uservar(rs.current_user(), 'uid', uid)
+
+    botdB.commit()
+
+    return ' '.join(('\nBot>', rs.reply(rs.current_user(), 'completed')))
+    botdB.close()
+< object
+
+> object getrandomprio python
+    import random
+    prio = random.randint(1,3)
+    pri = {
+        1: "Low",
+        2: "Medium",
+        3: "High",
+    }
+
+    rs.set_uservar(rs.current_user(), 'ticpri', pri.get(prio))
+< object
+
+> object createtic python
+    import random
+    tic = random.randint(1, 100000)
+
+    return rs.reply(rs.current_user(), str(tic))
+< object
+
+> object getrandpay python
+    import random
+    views = random.randint(50, 10000000)
+    pay = str(round(views * .005, 2))
+    rs.set_uservar(rs.current_user(), 'views', str(views))
+    rs.set_uservar(rs.current_user(), 'pay', pay)
+< object
+
